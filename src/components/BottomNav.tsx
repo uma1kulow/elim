@@ -21,36 +21,52 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) => {
 
   return (
     <motion.nav
-      initial={{ opacity: 0, y: 50 }}
+      initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3 }}
-      className="fixed bottom-0 left-0 right-0 z-40 pb-safe"
+      transition={{ delay: 0.2, type: 'spring', stiffness: 300, damping: 30 }}
+      className="fixed bottom-0 left-0 right-0 z-40"
     >
-      <div className="mx-4 mb-4">
-        <div className="glass-card rounded-2xl flex items-center justify-around py-2 px-2">
+      {/* Gradient fade */}
+      <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
+      
+      <div className="relative px-6 pb-8 pt-2">
+        <div className="bg-foreground/5 backdrop-blur-2xl rounded-2xl border border-border/50 flex items-center justify-around py-2">
           {tabs.map((tab) => (
-            <button
+            <motion.button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`relative flex flex-col items-center justify-center py-2 px-4 rounded-xl transition-all duration-300 ${
+              whileTap={{ scale: 0.9 }}
+              className={`relative flex flex-col items-center justify-center py-2 px-5 rounded-xl transition-all duration-300 ${
                 tab.isAction
-                  ? 'bg-primary text-primary-foreground w-14 h-14 -mt-6 rounded-full shadow-lg hover:scale-105'
-                  : activeTab === tab.id
-                  ? 'text-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'bg-foreground text-background -mt-8 w-14 h-14 rounded-full shadow-2xl'
+                  : ''
               }`}
             >
-              <tab.icon className={tab.isAction ? 'w-6 h-6' : 'w-5 h-5'} />
-              {!tab.isAction && (
-                <span className="text-xs mt-1 font-medium">{tab.label}</span>
-              )}
-              {activeTab === tab.id && !tab.isAction && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute -bottom-1 w-1 h-1 bg-foreground rounded-full"
+              <motion.div
+                animate={{
+                  scale: activeTab === tab.id && !tab.isAction ? 1.1 : 1,
+                }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              >
+                <tab.icon 
+                  className={`${tab.isAction ? 'w-6 h-6' : 'w-5 h-5'} ${
+                    activeTab === tab.id && !tab.isAction 
+                      ? 'text-foreground' 
+                      : !tab.isAction 
+                        ? 'text-muted-foreground' 
+                        : ''
+                  }`} 
+                  strokeWidth={activeTab === tab.id ? 2.5 : 1.5}
                 />
+              </motion.div>
+              {!tab.isAction && (
+                <span className={`text-[10px] mt-1 font-medium transition-colors ${
+                  activeTab === tab.id ? 'text-foreground' : 'text-muted-foreground'
+                }`}>
+                  {tab.label}
+                </span>
               )}
-            </button>
+            </motion.button>
           ))}
         </div>
       </div>
