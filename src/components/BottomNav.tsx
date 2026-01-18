@@ -36,11 +36,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) => {
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               whileTap={{ scale: 0.9 }}
-              className={`relative flex flex-col items-center justify-center py-2 px-5 rounded-xl transition-all duration-300 ${
-                tab.isAction
-                  ? 'bg-foreground text-background -mt-8 w-14 h-14 rounded-full shadow-2xl'
-                  : ''
-              }`}
+              className="relative flex flex-col items-center justify-center py-2 px-5 rounded-xl transition-all duration-300"
             >
               <motion.div
                 animate={{
