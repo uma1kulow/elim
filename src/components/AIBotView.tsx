@@ -148,7 +148,7 @@ const AIBotView: React.FC<AIBotViewProps> = ({ onBack }) => {
       </div>
 
       {/* Input */}
-      <div className="fixed bottom-20 left-0 right-0 p-4 bg-background/95 backdrop-blur-xl border-t border-border/50">
+      <div className="fixed bottom-24 left-0 right-0 p-4 bg-background/95 backdrop-blur-xl border-t border-border/50">
         <div className="flex gap-2">
           <Input
             value={input}
