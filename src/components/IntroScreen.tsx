@@ -29,7 +29,7 @@ const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
     if (selectedRegion) {
       result = result.filter(v => v.region === selectedRegion);
     }
-    return result.slice(0, 20); // Limit to 20 for performance
+    return result; // Show all villages without limit
   }, [searchQuery, selectedRegion, villages, searchVillages]);
 
   const handleVillageSelect = (village: Village) => {
