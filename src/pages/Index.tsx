@@ -118,7 +118,7 @@ const Index: React.FC = () => {
               </motion.div>
 
               <VillageStats />
-              <WeeklyMission />
+              <WeeklyMission onClick={() => setActiveFeature('gamification')} />
 
               {/* Feature Cards */}
               <FeatureCards
