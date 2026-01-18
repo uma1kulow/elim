@@ -7,9 +7,10 @@ import { useMissions, MissionWithProgress } from '@/hooks/useMissions';
 interface WeeklyMissionProps {
   mission?: MissionWithProgress;
   showSingle?: boolean;
+  onClick?: () => void;
 }
 
-const WeeklyMission: React.FC<WeeklyMissionProps> = ({ mission: propMission, showSingle = true }) => {
+const WeeklyMission: React.FC<WeeklyMissionProps> = ({ mission: propMission, showSingle = true, onClick }) => {
   const { language } = useLanguage();
   const { missions, loading, getDaysLeft } = useMissions();
 
@@ -46,7 +47,8 @@ const WeeklyMission: React.FC<WeeklyMissionProps> = ({ mission: propMission, sho
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className={`rounded-2xl p-4 ${
+            onClick={onClick}
+            className={`rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition-transform ${
               isCompleted 
                 ? 'bg-green-600 text-white' 
                 : 'bg-foreground text-background'
