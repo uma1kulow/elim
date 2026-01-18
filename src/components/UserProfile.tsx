@@ -6,9 +6,10 @@ import { useVillage } from '@/contexts/VillageContext';
 import { useFollow } from '@/hooks/useFollow';
 import { useMessages } from '@/hooks/useMessages';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, Settings, MessageCircle, LogOut } from 'lucide-react';
+import { ArrowLeft, Settings, MessageCircle, LogOut, Grid3X3, Bookmark, UserSquare2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import EditProfileModal from './EditProfileModal';
 
 interface Profile {
   id: string;
@@ -21,6 +22,12 @@ interface Profile {
   score: number;
 }
 
+interface Post {
+  id: string;
+  image_url: string | null;
+  content: string;
+}
+
 interface UserProfileProps {
   profileId?: string;
   onBack?: () => void;
@@ -28,12 +35,15 @@ interface UserProfileProps {
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({ profileId, onBack, onOpenChat }) => {
-  const { profile: currentProfile, signOut } = useAuth();
+  const { profile: currentProfile, signOut, refreshProfile } = useAuth();
   const { language } = useLanguage();
-  const { selectedVillage } = useVillage();
+  const { villages } = useVillage();
   const navigate = useNavigate();
   const [viewedProfile, setViewedProfile] = useState<Profile | null>(null);
   const [postsCount, setPostsCount] = useState(0);
+  const [userPosts, setUserPosts] = useState<Post[]>([]);
+  const [activePostTab, setActivePostTab] = useState<'posts' | 'saved' | 'tagged'>('posts');
+  const [showEditModal, setShowEditModal] = useState(false);
   
   const isOwnProfile = !profileId || profileId === currentProfile?.id;
   const targetProfileId = isOwnProfile ? currentProfile?.id : profileId;
@@ -47,8 +57,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ profileId, onBack, onOpenChat
     }
     if (targetProfileId) {
       fetchPostsCount(targetProfileId);
+      fetchUserPosts(targetProfileId);
     }
   }, [profileId, currentProfile?.id, targetProfileId]);
+
+  // Refresh when currentProfile changes (after edit)
+  useEffect(() => {
+    if (isOwnProfile && currentProfile?.id) {
+      fetchPostsCount(currentProfile.id);
+      fetchUserPosts(currentProfile.id);
+    }
+  }, [currentProfile]);
 
   const fetchProfile = async (id: string) => {
     const { data } = await supabase
@@ -71,6 +90,19 @@ const UserProfile: React.FC<UserProfileProps> = ({ profileId, onBack, onOpenChat
     setPostsCount(count || 0);
   };
 
+  const fetchUserPosts = async (id: string) => {
+    const { data } = await supabase
+      .from('posts')
+      .select('id, image_url, content')
+      .eq('author_id', id)
+      .order('created_at', { ascending: false })
+      .limit(30);
+    
+    if (data) {
+      setUserPosts(data);
+    }
+  };
+
   const handleMessage = async () => {
     if (!targetProfileId || isOwnProfile) return;
     
@@ -85,7 +117,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ profileId, onBack, onOpenChat
     toast.success(language === 'kg' ? 'Чыктыңыз' : 'Вы вышли');
   };
 
+  const handleEditClose = () => {
+    setShowEditModal(false);
+    refreshProfile();
+  };
+
   const profile = isOwnProfile ? currentProfile : viewedProfile;
+  const profileVillage = villages.find(v => v.id === profile?.village_id);
   
   if (!profile && !isOwnProfile) {
     return (
@@ -127,130 +165,135 @@ const UserProfile: React.FC<UserProfileProps> = ({ profileId, onBack, onOpenChat
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="space-y-5 pt-4"
-    >
-      {/* Header */}
-      {onBack && (
-        <div className="flex items-center justify-between -mt-4 mb-4">
-          <button onClick={onBack} className="p-2 -ml-2 hover:bg-secondary rounded-full transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          {isOwnProfile && (
-            <button className="p-2 hover:bg-secondary rounded-full transition-colors">
-              <Settings className="w-5 h-5" />
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Profile Card */}
+    <>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center py-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="space-y-4 pt-2"
       >
-        {/* Avatar */}
-        <div className="w-24 h-24 rounded-full bg-foreground text-background flex items-center justify-center mx-auto mb-4 text-3xl font-bold overflow-hidden">
-          {profile?.avatar_url ? (
-            <img 
-              src={profile.avatar_url} 
-              alt="" 
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            profile?.full_name?.[0]?.toUpperCase() || '?'
+        {/* Header */}
+        {onBack && (
+          <div className="flex items-center justify-between -mt-2 mb-2">
+            <button onClick={onBack} className="p-2 -ml-2 hover:bg-secondary rounded-full transition-colors">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            {isOwnProfile && (
+              <button 
+                onClick={() => setShowEditModal(true)}
+                className="p-2 hover:bg-secondary rounded-full transition-colors"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Profile Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
+          {/* Avatar */}
+          <div className="w-24 h-24 rounded-full bg-foreground text-background flex items-center justify-center mx-auto mb-4 text-3xl font-bold overflow-hidden">
+            {profile?.avatar_url ? (
+              <img 
+                src={profile.avatar_url} 
+                alt="" 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              profile?.full_name?.[0]?.toUpperCase() || '?'
+            )}
+          </div>
+
+          {/* Name */}
+          <h2 className="text-xl font-bold">{profile?.full_name || profile?.username || (language === 'kg' ? 'Колдонуучу' : 'Пользователь')}</h2>
+          {profile?.username && (
+            <p className="text-muted-foreground text-sm">@{profile.username}</p>
           )}
-        </div>
+          
+          {/* Village */}
+          {profileVillage && (
+            <p className="text-sm text-muted-foreground mt-1">
+              {language === 'kg' ? profileVillage.name.kg : profileVillage.name.ru}
+            </p>
+          )}
 
-        {/* Name */}
-        <h2 className="text-xl font-bold">{profile?.full_name || (language === 'kg' ? 'Колдонуучу' : 'Пользователь')}</h2>
-        {profile?.username && (
-          <p className="text-muted-foreground text-sm">@{profile.username}</p>
-        )}
-        
-        {/* Village */}
-        <p className="text-sm text-muted-foreground mt-1">
-          {language === 'kg' ? selectedVillage?.name.kg : selectedVillage?.name.ru}
-        </p>
+          {/* Bio */}
+          {profile?.bio && (
+            <p className="text-sm mt-3 px-6 max-w-md mx-auto">{profile.bio}</p>
+          )}
 
-        {/* Bio */}
-        {profile?.bio && (
-          <p className="text-sm mt-3 px-6">{profile.bio}</p>
-        )}
-
-        {/* Stats */}
-        <div className="flex items-center justify-center gap-8 mt-6">
-          <div className="text-center">
-            <p className="text-xl font-bold">{postsCount}</p>
-            <p className="text-xs text-muted-foreground">{language === 'kg' ? 'Пост' : 'Постов'}</p>
+          {/* Stats */}
+          <div className="flex items-center justify-center gap-8 mt-5">
+            <div className="text-center">
+              <p className="text-lg font-bold">{postsCount}</p>
+              <p className="text-xs text-muted-foreground">{language === 'kg' ? 'Пост' : 'Постов'}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-bold">{followersCount}</p>
+              <p className="text-xs text-muted-foreground">{language === 'kg' ? 'Жазылуучу' : 'Подписчики'}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-bold">{followingCount}</p>
+              <p className="text-xs text-muted-foreground">{language === 'kg' ? 'Жазылган' : 'Подписки'}</p>
+            </div>
           </div>
-          <div className="text-center">
-            <p className="text-xl font-bold">{followersCount}</p>
-            <p className="text-xs text-muted-foreground">{language === 'kg' ? 'Жазылуучу' : 'Подписчики'}</p>
-          </div>
-          <div className="text-center">
-            <p className="text-xl font-bold">{followingCount}</p>
-            <p className="text-xs text-muted-foreground">{language === 'kg' ? 'Жазылган' : 'Подписки'}</p>
-          </div>
-        </div>
 
-        {/* Actions */}
-        {!isOwnProfile && currentProfile && (
-          <div className="flex items-center justify-center gap-3 mt-6">
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={toggleFollow}
-              disabled={followLoading}
-              className={`flex-1 max-w-[140px] py-2.5 rounded-xl font-medium transition-colors ${
-                isFollowing
-                  ? 'bg-secondary text-foreground'
-                  : 'bg-foreground text-background'
-              }`}
-            >
-              {isFollowing 
-                ? (language === 'kg' ? 'Жазылган' : 'Подписан')
-                : (language === 'kg' ? 'Жазылуу' : 'Подписаться')
-              }
-            </motion.button>
-            
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={handleMessage}
-              className="w-11 h-11 rounded-xl bg-secondary flex items-center justify-center"
-            >
-              <MessageCircle className="w-5 h-5" />
-            </motion.button>
-          </div>
-        )}
+          {/* Actions */}
+          {!isOwnProfile && currentProfile && (
+            <div className="flex items-center justify-center gap-3 mt-5 px-6">
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={toggleFollow}
+                disabled={followLoading}
+                className={`flex-1 py-2.5 rounded-xl font-medium transition-colors ${
+                  isFollowing
+                    ? 'bg-secondary text-foreground'
+                    : 'bg-foreground text-background'
+                }`}
+              >
+                {isFollowing 
+                  ? (language === 'kg' ? 'Жазылган' : 'Подписан')
+                  : (language === 'kg' ? 'Жазылуу' : 'Подписаться')
+                }
+              </motion.button>
+              
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={handleMessage}
+                className="w-11 h-11 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0"
+              >
+                <MessageCircle className="w-5 h-5" />
+              </motion.button>
+            </div>
+          )}
 
-        {/* Own Profile Actions */}
+          {/* Own Profile Actions */}
+          {isOwnProfile && (
+            <div className="flex items-center justify-center gap-3 mt-5 px-6">
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowEditModal(true)}
+                className="flex-1 py-2.5 bg-secondary rounded-xl font-medium"
+              >
+                {language === 'kg' ? 'Профилди оңдоо' : 'Редактировать'}
+              </motion.button>
+              
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={handleSignOut}
+                className="w-11 h-11 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center flex-shrink-0"
+              >
+                <LogOut className="w-5 h-5" />
+              </motion.button>
+            </div>
+          )}
+        </motion.div>
+
+        {/* Score & Badges (own profile only) */}
         {isOwnProfile && (
-          <div className="flex items-center justify-center gap-3 mt-6">
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigate('/auth')}
-              className="px-6 py-2.5 bg-secondary rounded-xl font-medium"
-            >
-              {language === 'kg' ? 'Профилди оңдоо' : 'Редактировать'}
-            </motion.button>
-            
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={handleSignOut}
-              className="w-11 h-11 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center"
-            >
-              <LogOut className="w-5 h-5" />
-            </motion.button>
-          </div>
-        )}
-      </motion.div>
-
-      {/* Score & Badges (own profile only) */}
-      {isOwnProfile && (
-        <>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -270,31 +313,113 @@ const UserProfile: React.FC<UserProfileProps> = ({ profileId, onBack, onOpenChat
               />
             </div>
           </motion.div>
+        )}
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="bg-secondary/50 rounded-2xl p-4"
-          >
-            <h3 className="font-medium text-sm mb-3">{language === 'kg' ? 'Бейджтер' : 'Значки'}</h3>
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {['🌟', '🏆', '💪', '🎯', '🔥', '⭐', '🚀'].map((badge, i) => (
+        {/* Post Tabs */}
+        <div className="border-t border-border">
+          <div className="flex">
+            <button
+              onClick={() => setActivePostTab('posts')}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 border-b-2 transition-colors ${
+                activePostTab === 'posts' 
+                  ? 'border-foreground text-foreground' 
+                  : 'border-transparent text-muted-foreground'
+              }`}
+            >
+              <Grid3X3 className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => setActivePostTab('saved')}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 border-b-2 transition-colors ${
+                activePostTab === 'saved' 
+                  ? 'border-foreground text-foreground' 
+                  : 'border-transparent text-muted-foreground'
+              }`}
+            >
+              <Bookmark className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => setActivePostTab('tagged')}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 border-b-2 transition-colors ${
+                activePostTab === 'tagged' 
+                  ? 'border-foreground text-foreground' 
+                  : 'border-transparent text-muted-foreground'
+              }`}
+            >
+              <UserSquare2 className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Posts Grid */}
+        {activePostTab === 'posts' && (
+          <div className="grid grid-cols-3 gap-1 -mx-5">
+            {userPosts.length > 0 ? (
+              userPosts.map((post) => (
                 <motion.div
-                  key={i}
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 + i * 0.05 }}
-                  className="w-11 h-11 rounded-full bg-background flex items-center justify-center text-lg flex-shrink-0"
+                  key={post.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="aspect-square bg-secondary/50"
                 >
-                  {badge}
+                  {post.image_url ? (
+                    <img 
+                      src={post.image_url} 
+                      alt="" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center p-2">
+                      <p className="text-xs text-muted-foreground text-center line-clamp-3">
+                        {post.content.slice(0, 50)}...
+                      </p>
+                    </div>
+                  )}
                 </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        </>
-      )}
-    </motion.div>
+              ))
+            ) : (
+              <div className="col-span-3 py-12 text-center">
+                <div className="w-16 h-16 rounded-full border-2 border-foreground flex items-center justify-center mx-auto mb-4">
+                  <Grid3X3 className="w-8 h-8" />
+                </div>
+                <p className="font-semibold text-lg">
+                  {language === 'kg' ? 'Пост жок' : 'Нет публикаций'}
+                </p>
+                {isOwnProfile && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {language === 'kg' ? 'Биринчи постуңузду жарыялаңыз' : 'Опубликуйте свой первый пост'}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activePostTab === 'saved' && (
+          <div className="py-12 text-center">
+            <Bookmark className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-muted-foreground">
+              {language === 'kg' ? 'Сакталган посттор жок' : 'Нет сохраненных постов'}
+            </p>
+          </div>
+        )}
+
+        {activePostTab === 'tagged' && (
+          <div className="py-12 text-center">
+            <UserSquare2 className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-muted-foreground">
+              {language === 'kg' ? 'Белгиленген посттор жок' : 'Нет отмеченных постов'}
+            </p>
+          </div>
+        )}
+      </motion.div>
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal 
+        isOpen={showEditModal} 
+        onClose={handleEditClose}
+      />
+    </>
   );
 };
 

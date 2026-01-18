@@ -14,7 +14,8 @@ import { useVillage } from '@/contexts/VillageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePosts } from '@/hooks/usePosts';
-import { ChevronRight, Bell, Plus, Heart, MessageCircle } from 'lucide-react';
+import { ChevronRight, Bell, Heart, MessageCircle } from 'lucide-react';
+import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { ru, enUS } from 'date-fns/locale';
 
@@ -161,21 +162,23 @@ const Index: React.FC = () => {
         </AnimatePresence>
       </main>
 
-      {/* FAB */}
-      {profile && activeTab === 'home' && (
-        <motion.button
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => setShowCreatePost(true)}
-          className="fixed bottom-28 right-5 w-14 h-14 rounded-full bg-foreground text-background flex items-center justify-center shadow-lg z-40"
-        >
-          <Plus className="w-6 h-6" />
-        </motion.button>
-      )}
+      {/* No FAB here - using the + in BottomNav */}
 
       <CreatePostModal isOpen={showCreatePost} onClose={() => setShowCreatePost(false)} />
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNav 
+        activeTab={activeTab} 
+        onTabChange={(tab) => {
+          if (tab === 'add') {
+            if (profile) {
+              setShowCreatePost(true);
+            } else {
+              toast.error(language === 'kg' ? 'Адегенде кириңиз' : 'Сначала войдите');
+            }
+          } else {
+            setActiveTab(tab);
+          }
+        }} 
+      />
     </div>
   );
 };
