@@ -46,22 +46,22 @@ const AllPostsView: React.FC<AllPostsViewProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border/50 px-4 py-3"
+        className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50 px-4 py-4 pt-16"
       >
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="p-2 -ml-2 rounded-full hover:bg-secondary/50 transition-colors active:scale-95"
+            className="p-2.5 -ml-2 rounded-full bg-secondary/50 hover:bg-secondary transition-colors active:scale-95"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="font-semibold">
+            <h1 className="font-bold text-lg">
               {language === 'kg' ? 'Бардык посттор' : 'Все посты'}
             </h1>
             <p className="text-xs text-muted-foreground">
