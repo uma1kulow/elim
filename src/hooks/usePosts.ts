@@ -84,7 +84,7 @@ export const usePosts = () => {
     setLoading(false);
   };
 
-  const createPost = async (content: string, imageUrl?: string, category: string = 'general') => {
+  const createPost = async (content: string, imageUrl?: string, category: string = 'general', onMissionProgress?: (type: string) => void) => {
     if (!profile?.id) return { error: new Error('Not authenticated') };
     
     const { error } = await supabase
@@ -99,6 +99,10 @@ export const usePosts = () => {
     
     if (!error) {
       await fetchPosts();
+      // Trigger mission progress
+      if (onMissionProgress) {
+        onMissionProgress('posts');
+      }
     }
     
     return { error };

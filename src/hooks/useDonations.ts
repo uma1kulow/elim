@@ -64,7 +64,7 @@ export const useDonations = () => {
     setLoading(false);
   };
 
-  const contribute = async (donationId: string, amount: number, message?: string, isAnonymous?: boolean) => {
+  const contribute = async (donationId: string, amount: number, message?: string, isAnonymous?: boolean, onMissionProgress?: (type: string) => void) => {
     if (!profile) {
       toast.error('Донат берүү үчүн кириңиз');
       return false;
@@ -87,6 +87,11 @@ export const useDonations = () => {
 
     // Update user score
     await supabase.rpc('add_user_score', { p_user_id: profile.id, p_points: 25 });
+    
+    // Trigger mission progress
+    if (onMissionProgress) {
+      onMissionProgress('donations');
+    }
     
     toast.success(`Донат берилди! +25 балл`);
     fetchDonations();

@@ -4,6 +4,7 @@ import { ArrowLeft, AlertTriangle, Plus, MapPin, Clock, CheckCircle, Circle, Loa
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useIssues } from '@/hooks/useIssues';
 import { useAuth } from '@/contexts/AuthContext';
+import { useMissions } from '@/hooks/useMissions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -40,7 +41,8 @@ const statusLabels: Record<string, { kg: string; ru: string }> = {
 const IssuesView: React.FC<IssuesViewProps> = ({ onBack }) => {
   const { language } = useLanguage();
   const { profile } = useAuth();
-  const { issues, loading, createIssue } = useIssues();
+  const { issues, loading, createIssue, updateIssueStatus } = useIssues();
+  const { incrementProgress } = useMissions();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [filter, setFilter] = useState<string>('all');
   const [newIssue, setNewIssue] = useState({
@@ -60,6 +62,10 @@ const IssuesView: React.FC<IssuesViewProps> = ({ onBack }) => {
     
     setShowCreateModal(false);
     setNewIssue({ title: '', description: '', category: 'other' });
+  };
+
+  const handleResolveIssue = async (issueId: string) => {
+    await updateIssueStatus(issueId, 'resolved', incrementProgress);
   };
 
   const filteredIssues = issues.filter(issue => 

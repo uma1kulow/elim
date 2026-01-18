@@ -92,7 +92,7 @@ export const useIssues = () => {
     return data;
   };
 
-  const updateIssueStatus = async (issueId: string, status: string) => {
+  const updateIssueStatus = async (issueId: string, status: string, onMissionProgress?: (type: string) => void) => {
     const { error } = await supabase
       .from('issues')
       .update({ 
@@ -104,6 +104,11 @@ export const useIssues = () => {
     if (error) {
       toast.error('Ката кетти');
       return false;
+    }
+
+    // If issue is resolved, trigger mission progress
+    if (status === 'resolved' && onMissionProgress) {
+      onMissionProgress('issues');
     }
 
     toast.success('Статус жаңыртылды');

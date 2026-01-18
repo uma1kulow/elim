@@ -1,10 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Trophy, Medal, Star, Crown, Flame } from 'lucide-react';
+import { ArrowLeft, Trophy, Medal, Star, Crown, Flame, Target } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useGamification } from '@/hooks/useGamification';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useMissions } from '@/hooks/useMissions';
+import WeeklyMission from './WeeklyMission';
 
 interface GamificationViewProps {
   onBack: () => void;
@@ -14,6 +16,7 @@ const GamificationView: React.FC<GamificationViewProps> = ({ onBack }) => {
   const { language } = useLanguage();
   const { profile } = useAuth();
   const { badges, userBadges, leaderboard, loading } = useGamification();
+  const { missions, loading: missionsLoading } = useMissions();
 
   const getRankIcon = (index: number) => {
     if (index === 0) return <Crown className="w-5 h-5 text-amber-400" />;
@@ -57,6 +60,22 @@ const GamificationView: React.FC<GamificationViewProps> = ({ onBack }) => {
         </div>
       ) : (
         <div className="px-4 py-4 space-y-6">
+          {/* Weekly Missions */}
+          <div>
+            <h2 className="font-semibold text-lg mb-3 flex items-center gap-2">
+              <Target className="w-5 h-5 text-primary" />
+              {language === 'kg' ? 'Жумалык миссиялар' : 'Недельные миссии'}
+            </h2>
+            {missionsLoading ? (
+              <div className="bg-foreground/10 rounded-2xl p-4 animate-pulse">
+                <div className="h-4 bg-foreground/20 rounded w-1/2 mb-3" />
+                <div className="h-1.5 bg-foreground/20 rounded-full" />
+              </div>
+            ) : (
+              <WeeklyMission showSingle={false} />
+            )}
+          </div>
+
           {/* User Stats */}
           {profile && (
             <motion.div

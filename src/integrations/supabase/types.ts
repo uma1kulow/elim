@@ -778,6 +778,51 @@ export type Database = {
           },
         ]
       }
+      user_mission_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          current_progress: number
+          id: string
+          is_completed: boolean | null
+          mission_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_progress?: number
+          id?: string
+          is_completed?: boolean | null
+          mission_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_progress?: number
+          id?: string
+          is_completed?: boolean | null
+          mission_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_mission_progress_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "weekly_missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_mission_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       villages: {
         Row: {
           created_at: string | null
@@ -907,6 +952,62 @@ export type Database = {
           },
           {
             foreignKeyName: "voting_polls_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "villages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weekly_missions: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          description_kg: string | null
+          ends_at: string
+          id: string
+          is_active: boolean | null
+          mission_type: string
+          reward_points: number
+          starts_at: string
+          target_count: number
+          title: string
+          title_kg: string | null
+          village_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          description_kg?: string | null
+          ends_at?: string
+          id?: string
+          is_active?: boolean | null
+          mission_type?: string
+          reward_points?: number
+          starts_at?: string
+          target_count?: number
+          title: string
+          title_kg?: string | null
+          village_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          description_kg?: string | null
+          ends_at?: string
+          id?: string
+          is_active?: boolean | null
+          mission_type?: string
+          reward_points?: number
+          starts_at?: string
+          target_count?: number
+          title?: string
+          title_kg?: string | null
+          village_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_missions_village_id_fkey"
             columns: ["village_id"]
             isOneToOne: false
             referencedRelation: "villages"
