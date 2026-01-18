@@ -11,6 +11,7 @@ import ChatRoom from '@/components/ChatRoom';
 import UserProfile from '@/components/UserProfile';
 import CreatePostModal from '@/components/CreatePostModal';
 import AllPostsView from '@/components/AllPostsView';
+import AIBotView from '@/components/AIBotView';
 import { useVillage } from '@/contexts/VillageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -26,6 +27,7 @@ const Index: React.FC = () => {
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [showAllPosts, setShowAllPosts] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const [showAIBot, setShowAIBot] = useState(false);
   const { hasSelectedVillage, selectedVillage } = useVillage();
   const { t, language } = useLanguage();
   const { profile } = useAuth();
@@ -162,10 +164,15 @@ const Index: React.FC = () => {
 
           {activeTab === 'chat' && (
             <motion.div key="chat" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              {selectedConversation ? (
+              {showAIBot ? (
+                <AIBotView onBack={() => setShowAIBot(false)} />
+              ) : selectedConversation ? (
                 <ChatRoom conversationId={selectedConversation} onBack={() => setSelectedConversation(null)} />
               ) : (
-                <ChatList onSelectConversation={setSelectedConversation} />
+                <ChatList 
+                  onSelectConversation={setSelectedConversation} 
+                  onOpenAIBot={() => setShowAIBot(true)}
+                />
               )}
             </motion.div>
           )}
