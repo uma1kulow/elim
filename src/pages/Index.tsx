@@ -10,6 +10,7 @@ import ChatList from '@/components/ChatList';
 import ChatRoom from '@/components/ChatRoom';
 import UserProfile from '@/components/UserProfile';
 import CreatePostModal from '@/components/CreatePostModal';
+import AllPostsView from '@/components/AllPostsView';
 import { useVillage } from '@/contexts/VillageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,6 +24,7 @@ const Index: React.FC = () => {
   const [showIntro, setShowIntro] = useState(true);
   const [activeTab, setActiveTab] = useState('home');
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [showAllPosts, setShowAllPosts] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const { hasSelectedVillage, selectedVillage } = useVillage();
   const { t, language } = useLanguage();
@@ -46,7 +48,7 @@ const Index: React.FC = () => {
 
       <main className="pt-14 pb-32 px-5">
         <AnimatePresence mode="wait">
-          {activeTab === 'home' && (
+          {activeTab === 'home' && !showAllPosts && (
             <motion.div
               key="home"
               initial={{ opacity: 0 }}
@@ -97,13 +99,16 @@ const Index: React.FC = () => {
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold">{t('whatsHappening')}</h3>
-                  <button className="text-xs text-muted-foreground flex items-center gap-1">
+                  <button 
+                    onClick={() => setShowAllPosts(true)}
+                    className="text-xs text-primary font-medium flex items-center gap-1 hover:underline active:scale-95 transition-transform"
+                  >
                     {t('viewAll')}<ChevronRight className="w-3 h-3" />
                   </button>
                 </div>
 
                 <div className="space-y-3">
-                  {posts.map((post, index) => (
+                  {posts.slice(0, 5).map((post, index) => (
                     <motion.div
                       key={post.id}
                       initial={{ opacity: 0, y: 10 }}
@@ -121,6 +126,11 @@ const Index: React.FC = () => {
                         </div>
                       </div>
                       <p className="text-sm mb-3">{post.content}</p>
+                      {post.image_url && (
+                        <div className="mb-3 rounded-xl overflow-hidden">
+                          <img src={post.image_url} alt="Post" className="w-full max-h-64 object-cover" />
+                        </div>
+                      )}
                       <div className="flex items-center gap-4">
                         <button onClick={() => likePost(post.id)} className={`flex items-center gap-1.5 text-sm ${post.isLiked ? 'text-red-500' : 'text-muted-foreground'}`}>
                           <Heart className={`w-4 h-4 ${post.isLiked ? 'fill-current' : ''}`} />
@@ -135,6 +145,12 @@ const Index: React.FC = () => {
                   ))}
                 </div>
               </motion.div>
+            </motion.div>
+          )}
+
+          {activeTab === 'home' && showAllPosts && (
+            <motion.div key="allposts" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="-mx-5 -mt-14">
+              <AllPostsView onBack={() => setShowAllPosts(false)} />
             </motion.div>
           )}
 
