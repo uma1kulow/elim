@@ -1,11 +1,12 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Heart, MessageCircle, Share2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { usePosts } from '@/hooks/usePosts';
 import { formatDistanceToNow } from 'date-fns';
 import { ru, enUS } from 'date-fns/locale';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import PostComments from '@/components/PostComments';
 
 interface AllPostsViewProps {
   onBack: () => void;
@@ -13,7 +14,8 @@ interface AllPostsViewProps {
 
 const AllPostsView: React.FC<AllPostsViewProps> = ({ onBack }) => {
   const { language } = useLanguage();
-  const { posts, likePost } = usePosts();
+  const { posts, likePost, refetch } = usePosts();
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
   const formatTime = (dateString: string) => {
     return formatDistanceToNow(new Date(dateString), {
@@ -44,6 +46,19 @@ const AllPostsView: React.FC<AllPostsViewProps> = ({ onBack }) => {
     };
     return colors[category || 'other'] || colors.other;
   };
+
+  // Show comments view if a post is selected
+  if (selectedPostId) {
+    return (
+      <PostComments 
+        postId={selectedPostId} 
+        onBack={() => {
+          setSelectedPostId(null);
+          refetch(); // Refresh posts to get updated comment count
+        }} 
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -156,7 +171,10 @@ const AllPostsView: React.FC<AllPostsViewProps> = ({ onBack }) => {
                       <Heart className={`w-[18px] h-[18px] ${post.isLiked ? 'fill-current' : ''}`} />
                       <span>{post.likes_count || 0}</span>
                     </button>
-                    <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors active:scale-95">
+                    <button 
+                      onClick={() => setSelectedPostId(post.id)}
+                      className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors active:scale-95"
+                    >
                       <MessageCircle className="w-[18px] h-[18px]" />
                       <span>{post.comments_count || 0}</span>
                     </button>
