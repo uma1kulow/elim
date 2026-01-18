@@ -21,6 +21,7 @@ import IssuesView from '@/components/IssuesView';
 import DonationsView from '@/components/DonationsView';
 import VillageHistoryView from '@/components/VillageHistoryView';
 import VillageFutureView from '@/components/VillageFutureView';
+import PostComments from '@/components/PostComments';
 import { useVillage } from '@/contexts/VillageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -40,10 +41,11 @@ const Index: React.FC = () => {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [showAIBot, setShowAIBot] = useState(false);
   const [activeFeature, setActiveFeature] = useState<FeatureView>(null);
+  const [selectedPostForComments, setSelectedPostForComments] = useState<string | null>(null);
   const { hasSelectedVillage, selectedVillage } = useVillage();
   const { t, language } = useLanguage();
   const { profile } = useAuth();
-  const { posts, likePost } = usePosts();
+  const { posts, likePost, refetch: refetchPosts } = usePosts();
 
   if (showIntro || !hasSelectedVillage) {
     return <IntroScreen onComplete={() => setShowIntro(false)} />;
@@ -57,6 +59,19 @@ const Index: React.FC = () => {
   };
 
   const handleCloseFeature = () => setActiveFeature(null);
+
+  // Render comments view if a post is selected
+  if (selectedPostForComments) {
+    return (
+      <PostComments
+        postId={selectedPostForComments}
+        onBack={() => {
+          setSelectedPostForComments(null);
+          refetchPosts();
+        }}
+      />
+    );
+  }
 
   // Render active feature view
   if (activeFeature) {
@@ -235,7 +250,10 @@ const Index: React.FC = () => {
                           <Heart className={`w-4 h-4 ${post.isLiked ? 'fill-current' : ''}`} />
                           {post.likes_count}
                         </button>
-                        <button className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <button 
+                          onClick={() => setSelectedPostForComments(post.id)}
+                          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary active:scale-95 transition-all"
+                        >
                           <MessageCircle className="w-4 h-4" />
                           {post.comments_count}
                         </button>
