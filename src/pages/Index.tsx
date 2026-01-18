@@ -12,14 +12,23 @@ import UserProfile from '@/components/UserProfile';
 import CreatePostModal from '@/components/CreatePostModal';
 import AllPostsView from '@/components/AllPostsView';
 import AIBotView from '@/components/AIBotView';
+import FeatureCards from '@/components/FeatureCards';
+import GamificationView from '@/components/GamificationView';
+import NotificationsView from '@/components/NotificationsView';
+import EconomyView from '@/components/EconomyView';
+import VotingView from '@/components/VotingView';
+import IssuesView from '@/components/IssuesView';
+import DonationsView from '@/components/DonationsView';
 import { useVillage } from '@/contexts/VillageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePosts } from '@/hooks/usePosts';
-import { ChevronRight, Bell, Heart, MessageCircle } from 'lucide-react';
+import { ChevronRight, Heart, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { ru, enUS } from 'date-fns/locale';
+
+type FeatureView = 'gamification' | 'notifications' | 'economy' | 'voting' | 'issues' | 'donations' | null;
 
 const Index: React.FC = () => {
   const [showIntro, setShowIntro] = useState(true);
@@ -28,6 +37,7 @@ const Index: React.FC = () => {
   const [showAllPosts, setShowAllPosts] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [showAIBot, setShowAIBot] = useState(false);
+  const [activeFeature, setActiveFeature] = useState<FeatureView>(null);
   const { hasSelectedVillage, selectedVillage } = useVillage();
   const { t, language } = useLanguage();
   const { profile } = useAuth();
@@ -43,6 +53,48 @@ const Index: React.FC = () => {
       locale: language === 'kg' ? ru : enUS
     });
   };
+
+  const handleCloseFeature = () => setActiveFeature(null);
+
+  // Render active feature view
+  if (activeFeature) {
+    return (
+      <div className="min-h-screen bg-background">
+        <AnimatePresence mode="wait">
+          {activeFeature === 'gamification' && (
+            <motion.div key="gamification" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+              <GamificationView onBack={handleCloseFeature} />
+            </motion.div>
+          )}
+          {activeFeature === 'notifications' && (
+            <motion.div key="notifications" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+              <NotificationsView onBack={handleCloseFeature} />
+            </motion.div>
+          )}
+          {activeFeature === 'economy' && (
+            <motion.div key="economy" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+              <EconomyView onBack={handleCloseFeature} />
+            </motion.div>
+          )}
+          {activeFeature === 'voting' && (
+            <motion.div key="voting" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+              <VotingView onBack={handleCloseFeature} />
+            </motion.div>
+          )}
+          {activeFeature === 'issues' && (
+            <motion.div key="issues" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+              <IssuesView onBack={handleCloseFeature} />
+            </motion.div>
+          )}
+          {activeFeature === 'donations' && (
+            <motion.div key="donations" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+              <DonationsView onBack={handleCloseFeature} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -68,19 +120,15 @@ const Index: React.FC = () => {
               <VillageStats />
               <WeeklyMission />
 
-              <motion.button
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="w-full flex items-center gap-3 bg-status-event/10 text-status-event rounded-2xl p-4 active:scale-[0.98] transition-transform"
-              >
-                <Bell className="w-5 h-5" />
-                <div className="flex-1 text-left">
-                  <p className="text-sm font-medium">3 жаңы билдирүү</p>
-                  <p className="text-xs opacity-70">Көрүү үчүн басыңыз</p>
-                </div>
-                <ChevronRight className="w-4 h-4" />
-              </motion.button>
+              {/* Feature Cards */}
+              <FeatureCards
+                onOpenGamification={() => setActiveFeature('gamification')}
+                onOpenNotifications={() => setActiveFeature('notifications')}
+                onOpenEconomy={() => setActiveFeature('economy')}
+                onOpenVoting={() => setActiveFeature('voting')}
+                onOpenIssues={() => setActiveFeature('issues')}
+                onOpenDonations={() => setActiveFeature('donations')}
+              />
 
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -93,7 +141,7 @@ const Index: React.FC = () => {
                   onClick={() => setActiveTab('map')}
                   className="w-full p-3 flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  <span>Картаны ачуу</span>
+                  <span>{language === 'kg' ? 'Картаны ачуу' : 'Открыть карту'}</span>
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </motion.div>
@@ -110,7 +158,7 @@ const Index: React.FC = () => {
                 </div>
 
                 <div className="space-y-3">
-                  {posts.slice(0, 5).map((post, index) => (
+                  {posts.slice(0, 3).map((post, index) => (
                     <motion.div
                       key={post.id}
                       initial={{ opacity: 0, y: 10 }}
@@ -184,8 +232,6 @@ const Index: React.FC = () => {
           )}
         </AnimatePresence>
       </main>
-
-      {/* No FAB here - using the + in BottomNav */}
 
       <CreatePostModal isOpen={showCreatePost} onClose={() => setShowCreatePost(false)} />
       <BottomNav 
