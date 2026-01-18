@@ -19,16 +19,18 @@ import EconomyView from '@/components/EconomyView';
 import VotingView from '@/components/VotingView';
 import IssuesView from '@/components/IssuesView';
 import DonationsView from '@/components/DonationsView';
+import VillageHistoryView from '@/components/VillageHistoryView';
+import VillageFutureView from '@/components/VillageFutureView';
 import { useVillage } from '@/contexts/VillageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePosts } from '@/hooks/usePosts';
-import { ChevronRight, Heart, MessageCircle } from 'lucide-react';
+import { ChevronRight, Heart, MessageCircle, History, Rocket } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { ru, enUS } from 'date-fns/locale';
 
-type FeatureView = 'gamification' | 'notifications' | 'economy' | 'voting' | 'issues' | 'donations' | null;
+type FeatureView = 'gamification' | 'notifications' | 'economy' | 'voting' | 'issues' | 'donations' | 'history' | 'future' | null;
 
 const Index: React.FC = () => {
   const [showIntro, setShowIntro] = useState(true);
@@ -91,6 +93,16 @@ const Index: React.FC = () => {
               <DonationsView onBack={handleCloseFeature} />
             </motion.div>
           )}
+          {activeFeature === 'history' && (
+            <motion.div key="history" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+              <VillageHistoryView onBack={handleCloseFeature} />
+            </motion.div>
+          )}
+          {activeFeature === 'future' && (
+            <motion.div key="future" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+              <VillageFutureView onBack={handleCloseFeature} />
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     );
@@ -129,6 +141,43 @@ const Index: React.FC = () => {
                 onOpenIssues={() => setActiveFeature('issues')}
                 onOpenDonations={() => setActiveFeature('donations')}
               />
+
+              {/* Village History & Future Cards */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.12 }}
+                className="grid grid-cols-2 gap-3"
+              >
+                <button
+                  onClick={() => setActiveFeature('history')}
+                  className="bg-secondary/30 rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
+                >
+                  <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center mb-3">
+                    <History className="w-5 h-5 text-amber-500" />
+                  </div>
+                  <h3 className="font-semibold text-sm mb-1">
+                    {language === 'kg' ? 'Айылдын тарыхы' : 'История села'}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    {language === 'kg' ? 'Өткөн жолубуз' : 'Наш путь'}
+                  </p>
+                </button>
+                <button
+                  onClick={() => setActiveFeature('future')}
+                  className="bg-secondary/30 rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
+                >
+                  <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center mb-3">
+                    <Rocket className="w-5 h-5 text-blue-500" />
+                  </div>
+                  <h3 className="font-semibold text-sm mb-1">
+                    {language === 'kg' ? 'Айыл келечекте' : 'Будущее села'}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    {language === 'kg' ? 'Биздин максаттар' : 'Наши цели'}
+                  </p>
+                </button>
+              </motion.div>
 
               <motion.div
                 initial={{ opacity: 0, y: 10 }}

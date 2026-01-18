@@ -823,6 +823,123 @@ export type Database = {
           },
         ]
       }
+      village_future_plans: {
+        Row: {
+          author_id: string | null
+          created_at: string | null
+          description: string
+          description_kg: string | null
+          id: string
+          image_url: string | null
+          priority: number | null
+          status: string
+          target_year: number | null
+          title: string
+          title_kg: string | null
+          village_id: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          created_at?: string | null
+          description: string
+          description_kg?: string | null
+          id?: string
+          image_url?: string | null
+          priority?: number | null
+          status?: string
+          target_year?: number | null
+          title: string
+          title_kg?: string | null
+          village_id?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          created_at?: string | null
+          description?: string
+          description_kg?: string | null
+          id?: string
+          image_url?: string | null
+          priority?: number | null
+          status?: string
+          target_year?: number | null
+          title?: string
+          title_kg?: string | null
+          village_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "village_future_plans_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "village_future_plans_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "villages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      village_history: {
+        Row: {
+          author_id: string | null
+          category: string
+          created_at: string | null
+          description: string
+          description_kg: string | null
+          id: string
+          image_url: string | null
+          title: string
+          title_kg: string | null
+          village_id: string | null
+          year: number | null
+        }
+        Insert: {
+          author_id?: string | null
+          category?: string
+          created_at?: string | null
+          description: string
+          description_kg?: string | null
+          id?: string
+          image_url?: string | null
+          title: string
+          title_kg?: string | null
+          village_id?: string | null
+          year?: number | null
+        }
+        Update: {
+          author_id?: string | null
+          category?: string
+          created_at?: string | null
+          description?: string
+          description_kg?: string | null
+          id?: string
+          image_url?: string | null
+          title?: string
+          title_kg?: string | null
+          village_id?: string | null
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "village_history_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "village_history_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "villages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       villages: {
         Row: {
           created_at: string | null
