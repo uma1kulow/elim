@@ -9,14 +9,14 @@ interface BottomNavProps {
 }
 
 const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const tabs = [
-    { id: 'home', icon: Home, label: t('home') },
-    { id: 'map', icon: Map, label: t('map') },
+    { id: 'home', icon: Home, label: language === 'kg' ? 'Башкы' : 'Главная' },
+    { id: 'map', icon: Map, label: language === 'kg' ? 'Карта' : 'Карта' },
     { id: 'add', icon: Plus, label: '', isAction: true },
-    { id: 'chat', icon: MessageCircle, label: 'Чат' },
-    { id: 'profile', icon: User, label: t('profile') },
+    { id: 'chat', icon: MessageCircle, label: language === 'kg' ? 'Чат' : 'Чат' },
+    { id: 'profile', icon: User, label: language === 'kg' ? 'Профиль' : 'Профиль' },
   ];
 
   return (
