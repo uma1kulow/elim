@@ -4,14 +4,15 @@ import { useMessages } from '@/hooks/useMessages';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatDistanceToNow } from 'date-fns';
 import { ru, enUS } from 'date-fns/locale';
-import { MessageCircle, Search, Plus } from 'lucide-react';
+import { MessageCircle, Search, Plus, Bot } from 'lucide-react';
 import UserSearch from './UserSearch';
 
 interface ChatListProps {
   onSelectConversation: (conversationId: string) => void;
+  onOpenAIBot?: () => void;
 }
 
-const ChatList: React.FC<ChatListProps> = ({ onSelectConversation }) => {
+const ChatList: React.FC<ChatListProps> = ({ onSelectConversation, onOpenAIBot }) => {
   const { conversations, loading } = useMessages();
   const { language } = useLanguage();
   const [showUserSearch, setShowUserSearch] = useState(false);
@@ -64,6 +65,33 @@ const ChatList: React.FC<ChatListProps> = ({ onSelectConversation }) => {
           {language === 'kg' ? 'Адам издөө...' : 'Поиск людей...'}
         </span>
       </motion.button>
+
+      {/* AI Bot Entry */}
+      {onOpenAIBot && (
+        <motion.button
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          onClick={onOpenAIBot}
+          className="w-full flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 hover:bg-primary/15 active:scale-[0.98] transition-all text-left mb-3"
+        >
+          <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+            <Bot className="w-6 h-6 text-primary-foreground" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold">ELIM AI</span>
+              <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full font-medium">
+                {language === 'kg' ? 'Жардамчы' : 'Помощник'}
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground truncate mt-0.5">
+              {language === 'kg' ? 'Суроо берип, жардам алыңыз' : 'Задайте вопрос и получите помощь'}
+            </p>
+          </div>
+          <div className="w-3 h-3 rounded-full bg-green-500 flex-shrink-0 animate-pulse" />
+        </motion.button>
+      )}
 
       {conversations.length === 0 ? (
         <motion.div
