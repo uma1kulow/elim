@@ -4,6 +4,7 @@ import { ArrowLeft, Vote, Plus, Clock, Users, Check } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useVoting, Poll } from '@/hooks/useVoting';
 import { useAuth } from '@/contexts/AuthContext';
+import { useMissions } from '@/hooks/useMissions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,6 +17,7 @@ const VotingView: React.FC<VotingViewProps> = ({ onBack }) => {
   const { language } = useLanguage();
   const { profile } = useAuth();
   const { polls, loading, vote, createPoll } = useVoting();
+  const { incrementProgress } = useMissions();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newPoll, setNewPoll] = useState({
     title: '',
@@ -24,7 +26,7 @@ const VotingView: React.FC<VotingViewProps> = ({ onBack }) => {
   });
 
   const handleVote = async (pollId: string, optionId: string) => {
-    await vote(pollId, optionId);
+    const success = await vote(pollId, optionId, incrementProgress);
   };
 
   const handleCreatePoll = async () => {

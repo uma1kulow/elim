@@ -4,6 +4,7 @@ import { ArrowLeft, Heart, Plus, Target, Users, TrendingUp } from 'lucide-react'
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useDonations } from '@/hooks/useDonations';
 import { useAuth } from '@/contexts/AuthContext';
+import { useMissions } from '@/hooks/useMissions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,6 +18,7 @@ const DonationsView: React.FC<DonationsViewProps> = ({ onBack }) => {
   const { language } = useLanguage();
   const { profile } = useAuth();
   const { donations, loading, contribute, createDonation } = useDonations();
+  const { incrementProgress } = useMissions();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showContributeModal, setShowContributeModal] = useState<string | null>(null);
   const [contributionAmount, setContributionAmount] = useState('');
@@ -33,7 +35,9 @@ const DonationsView: React.FC<DonationsViewProps> = ({ onBack }) => {
     await contribute(
       showContributeModal,
       parseFloat(contributionAmount),
-      contributionMessage || undefined
+      contributionMessage || undefined,
+      false,
+      incrementProgress
     );
     
     setShowContributeModal(null);

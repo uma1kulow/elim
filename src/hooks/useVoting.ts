@@ -79,7 +79,7 @@ export const useVoting = () => {
     setLoading(false);
   };
 
-  const vote = async (pollId: string, optionId: string) => {
+  const vote = async (pollId: string, optionId: string, onMissionProgress?: (type: string) => void) => {
     if (!profile) {
       toast.error('Добуш берүү үчүн кириңиз');
       return false;
@@ -104,6 +104,11 @@ export const useVoting = () => {
 
     // Update user score
     await supabase.rpc('add_user_score', { p_user_id: profile.id, p_points: 10 });
+    
+    // Trigger mission progress
+    if (onMissionProgress) {
+      onMissionProgress('votes');
+    }
     
     toast.success('Добуш берилди! +10 балл');
     fetchPolls();

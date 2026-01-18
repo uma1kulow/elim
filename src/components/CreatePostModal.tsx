@@ -4,6 +4,7 @@ import { X, Image, Video, Send, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { usePosts } from '@/hooks/usePosts';
 import { useAuth } from '@/contexts/AuthContext';
+import { useMissions } from '@/hooks/useMissions';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -24,6 +25,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
   const { language } = useLanguage();
   const { createPost } = usePosts();
   const { profile } = useAuth();
+  const { incrementProgress } = useMissions();
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('general');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -114,7 +116,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
       mediaUrl = uploadedUrl;
     }
     
-    const { error } = await createPost(content, mediaUrl, category);
+    const { error } = await createPost(content, mediaUrl, category, incrementProgress);
     
     if (error) {
       toast.error(language === 'kg' ? 'Ката кетти' : 'Произошла ошибка');
