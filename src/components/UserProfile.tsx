@@ -6,7 +6,7 @@ import { useVillage } from '@/contexts/VillageContext';
 import { useFollow } from '@/hooks/useFollow';
 import { useMessages } from '@/hooks/useMessages';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, Settings, MessageCircle, LogOut, Grid3X3, Bookmark, UserSquare2 } from 'lucide-react';
+import { ArrowLeft, Settings, MessageCircle, LogOut, Grid3X3, Bookmark } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import EditProfileModal from './EditProfileModal';
@@ -338,16 +338,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ profileId, onBack, onOpenChat
             >
               <Bookmark className="w-5 h-5" />
             </button>
-            <button
-              onClick={() => setActivePostTab('tagged')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 border-b-2 transition-colors ${
-                activePostTab === 'tagged' 
-                  ? 'border-foreground text-foreground' 
-                  : 'border-transparent text-muted-foreground'
-              }`}
-            >
-              <UserSquare2 className="w-5 h-5" />
-            </button>
           </div>
         </div>
 
@@ -404,14 +394,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ profileId, onBack, onOpenChat
           </div>
         )}
 
-        {activePostTab === 'tagged' && (
-          <div className="py-12 text-center">
-            <UserSquare2 className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">
-              {language === 'kg' ? 'Белгиленген посттор жок' : 'Нет отмеченных постов'}
-            </p>
-          </div>
-        )}
       </motion.div>
 
       {/* Edit Profile Modal */}
