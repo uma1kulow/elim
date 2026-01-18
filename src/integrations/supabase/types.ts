@@ -14,6 +14,149 @@ export type Database = {
   }
   public: {
     Tables: {
+      badges: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          description_kg: string | null
+          icon: string
+          id: string
+          name: string
+          name_kg: string | null
+          points_required: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          description_kg?: string | null
+          icon: string
+          id?: string
+          name: string
+          name_kg?: string | null
+          points_required?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          description_kg?: string | null
+          icon?: string
+          id?: string
+          name?: string
+          name_kg?: string | null
+          points_required?: number | null
+        }
+        Relationships: []
+      }
+      businesses: {
+        Row: {
+          address: string | null
+          category: string
+          created_at: string | null
+          description: string | null
+          description_kg: string | null
+          id: string
+          image_url: string | null
+          is_verified: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          name_kg: string | null
+          owner_id: string
+          phone: string | null
+          rating: number | null
+          reviews_count: number | null
+          village_id: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          category: string
+          created_at?: string | null
+          description?: string | null
+          description_kg?: string | null
+          id?: string
+          image_url?: string | null
+          is_verified?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          name_kg?: string | null
+          owner_id: string
+          phone?: string | null
+          rating?: number | null
+          reviews_count?: number | null
+          village_id?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          description_kg?: string | null
+          id?: string
+          image_url?: string | null
+          is_verified?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          name_kg?: string | null
+          owner_id?: string
+          phone?: string | null
+          rating?: number | null
+          reviews_count?: number | null
+          village_id?: string | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "businesses_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "businesses_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "villages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_bot_messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_bot_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_participants: {
         Row: {
           conversation_id: string
@@ -68,6 +211,114 @@ export type Database = {
         }
         Relationships: []
       }
+      donation_contributions: {
+        Row: {
+          amount: number
+          created_at: string | null
+          donation_id: string
+          id: string
+          is_anonymous: boolean | null
+          message: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          donation_id: string
+          id?: string
+          is_anonymous?: boolean | null
+          message?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          donation_id?: string
+          id?: string
+          is_anonymous?: boolean | null
+          message?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "donation_contributions_donation_id_fkey"
+            columns: ["donation_id"]
+            isOneToOne: false
+            referencedRelation: "donations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donation_contributions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      donations: {
+        Row: {
+          author_id: string
+          created_at: string | null
+          current_amount: number | null
+          description: string | null
+          description_kg: string | null
+          ends_at: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          target_amount: number
+          title: string
+          title_kg: string | null
+          village_id: string | null
+        }
+        Insert: {
+          author_id: string
+          created_at?: string | null
+          current_amount?: number | null
+          description?: string | null
+          description_kg?: string | null
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          target_amount: number
+          title: string
+          title_kg?: string | null
+          village_id?: string | null
+        }
+        Update: {
+          author_id?: string
+          created_at?: string | null
+          current_amount?: number | null
+          description?: string | null
+          description_kg?: string | null
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          target_amount?: number
+          title?: string
+          title_kg?: string | null
+          village_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "donations_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donations_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "villages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       followers: {
         Row: {
           created_at: string
@@ -100,6 +351,147 @@ export type Database = {
             columns: ["following_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      issues: {
+        Row: {
+          author_id: string
+          category: string
+          created_at: string | null
+          description: string
+          description_kg: string | null
+          id: string
+          image_url: string | null
+          latitude: number | null
+          longitude: number | null
+          resolved_at: string | null
+          status: string
+          title: string
+          title_kg: string | null
+          village_id: string | null
+          votes_count: number | null
+        }
+        Insert: {
+          author_id: string
+          category?: string
+          created_at?: string | null
+          description: string
+          description_kg?: string | null
+          id?: string
+          image_url?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          resolved_at?: string | null
+          status?: string
+          title: string
+          title_kg?: string | null
+          village_id?: string | null
+          votes_count?: number | null
+        }
+        Update: {
+          author_id?: string
+          category?: string
+          created_at?: string | null
+          description?: string
+          description_kg?: string | null
+          id?: string
+          image_url?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          resolved_at?: string | null
+          status?: string
+          title?: string
+          title_kg?: string | null
+          village_id?: string | null
+          votes_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issues_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issues_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "villages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jobs: {
+        Row: {
+          author_id: string
+          company_name: string
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string | null
+          description: string
+          description_kg: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          job_type: string
+          salary_max: number | null
+          salary_min: number | null
+          title: string
+          title_kg: string | null
+          village_id: string | null
+        }
+        Insert: {
+          author_id: string
+          company_name: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          description: string
+          description_kg?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          job_type?: string
+          salary_max?: number | null
+          salary_min?: number | null
+          title: string
+          title_kg?: string | null
+          village_id?: string | null
+        }
+        Update: {
+          author_id?: string
+          company_name?: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          description?: string
+          description_kg?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          job_type?: string
+          salary_max?: number | null
+          salary_min?: number | null
+          title?: string
+          title_kg?: string | null
+          village_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "villages"
             referencedColumns: ["id"]
           },
         ]
@@ -142,6 +534,88 @@ export type Database = {
             columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          link: string | null
+          message: string
+          message_kg: string | null
+          title: string
+          title_kg: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          link?: string | null
+          message: string
+          message_kg?: string | null
+          title: string
+          title_kg?: string | null
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          link?: string | null
+          message?: string
+          message_kg?: string | null
+          title?: string
+          title_kg?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      poll_options: {
+        Row: {
+          created_at: string | null
+          id: string
+          poll_id: string
+          text: string
+          text_kg: string | null
+          votes_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          poll_id: string
+          text: string
+          text_kg?: string | null
+          votes_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          poll_id?: string
+          text?: string
+          text_kg?: string | null
+          votes_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_options_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "voting_polls"
             referencedColumns: ["id"]
           },
         ]
@@ -268,12 +742,187 @@ export type Database = {
         }
         Relationships: []
       }
+      user_badges: {
+        Row: {
+          badge_id: string
+          earned_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          earned_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          earned_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_badges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      villages: {
+        Row: {
+          created_at: string | null
+          district: string | null
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+          name_kg: string | null
+          population: number | null
+          region: string
+        }
+        Insert: {
+          created_at?: string | null
+          district?: string | null
+          id?: string
+          latitude: number
+          longitude: number
+          name: string
+          name_kg?: string | null
+          population?: number | null
+          region: string
+        }
+        Update: {
+          created_at?: string | null
+          district?: string | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          name?: string
+          name_kg?: string | null
+          population?: number | null
+          region?: string
+        }
+        Relationships: []
+      }
+      votes: {
+        Row: {
+          created_at: string | null
+          id: string
+          option_id: string
+          poll_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          option_id: string
+          poll_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          option_id?: string
+          poll_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "votes_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "poll_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "votes_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "voting_polls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voting_polls: {
+        Row: {
+          author_id: string
+          created_at: string | null
+          description: string | null
+          description_kg: string | null
+          ends_at: string
+          id: string
+          is_active: boolean | null
+          title: string
+          title_kg: string | null
+          village_id: string | null
+        }
+        Insert: {
+          author_id: string
+          created_at?: string | null
+          description?: string | null
+          description_kg?: string | null
+          ends_at: string
+          id?: string
+          is_active?: boolean | null
+          title: string
+          title_kg?: string | null
+          village_id?: string | null
+        }
+        Update: {
+          author_id?: string
+          created_at?: string | null
+          description?: string | null
+          description_kg?: string | null
+          ends_at?: string
+          id?: string
+          is_active?: boolean | null
+          title?: string
+          title_kg?: string | null
+          village_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voting_polls_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voting_polls_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "villages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      add_user_score: {
+        Args: { p_points: number; p_user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
