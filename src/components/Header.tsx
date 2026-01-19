@@ -59,7 +59,7 @@ const Header: React.FC<HeaderProps> = ({ onVillageClick, onSecretAdminAccess }) 
         {selectedVillage && (
           <button
             onClick={onVillageClick}
-            className="absolute left-1/2 -translate-x-1/2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="absolute left-1/2 -translate-x-1/2 px-3 py-1 text-xs font-medium text-foreground bg-secondary/80 hover:bg-secondary rounded-full border border-border/50 transition-all active:scale-95"
           >
             {language === 'kg' ? selectedVillage.name.kg : selectedVillage.name.ru}
           </button>
