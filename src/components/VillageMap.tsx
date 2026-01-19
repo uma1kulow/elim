@@ -1,79 +1,18 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Map, { Marker, Popup, NavigationControl } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useVillage } from '@/contexts/VillageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ThumbsUp, MessageCircle, Share2, X } from 'lucide-react';
+import { useIssues } from '@/hooks/useIssues';
+import { ThumbsUp, MessageCircle, Share2, X, MapPin } from 'lucide-react';
 
 export type MarkerStatus = 'problem' | 'solved' | 'progress' | 'event' | 'construction' | 'celebration';
 
-interface MapMarker {
-  id: string;
-  lat: number;
-  lng: number;
-  status: MarkerStatus;
-  title: string;
-  description: string;
-  votes: number;
-  comments: number;
-  image?: string;
-}
-
-const mockMarkers: MapMarker[] = [
-  {
-    id: '1',
-    lat: 42.4538,
-    lng: 78.3922,
-    status: 'problem',
-    title: 'Жол бузулган',
-    description: 'Борбордук көчөдөгү жол оңдоо талап кылат',
-    votes: 45,
-    comments: 12,
-  },
-  {
-    id: '2',
-    lat: 42.4518,
-    lng: 78.3892,
-    status: 'solved',
-    title: 'Жарык орнотулду',
-    description: 'Жаңы көчө жарыктары орнотулду',
-    votes: 78,
-    comments: 23,
-  },
-  {
-    id: '3',
-    lat: 42.4548,
-    lng: 78.3942,
-    status: 'progress',
-    title: 'Мектеп оңдолуп жатат',
-    description: 'Айыл мектебинин ремонту башталды',
-    votes: 120,
-    comments: 45,
-  },
-  {
-    id: '4',
-    lat: 42.4508,
-    lng: 78.3882,
-    status: 'event',
-    title: 'Спорт мелдеши',
-    description: 'Жума күнү волейбол турнири',
-    votes: 34,
-    comments: 8,
-  },
-  {
-    id: '5',
-    lat: 42.4558,
-    lng: 78.3952,
-    status: 'construction',
-    title: 'Жаңы көпүрө',
-    description: 'Дарыянын үстүндө көпүрө курулуп жатат',
-    votes: 89,
-    comments: 31,
-  },
-];
-
-const statusColors: Record<MarkerStatus, string> = {
+const statusColors: Record<string, string> = {
+  pending: '#ef4444',       // problem - red
+  resolved: '#22c55e',      // solved - green
+  'in-progress': '#eab308', // progress - yellow
   problem: '#ef4444',
   solved: '#22c55e',
   progress: '#eab308',
@@ -82,11 +21,18 @@ const statusColors: Record<MarkerStatus, string> = {
   celebration: '#a16207',
 };
 
+const statusMapping: Record<string, MarkerStatus> = {
+  pending: 'problem',
+  resolved: 'solved',
+  'in-progress': 'progress',
+};
+
 const VillageMap: React.FC = () => {
   const { selectedVillage } = useVillage();
-  const { t } = useLanguage();
-  const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
-  const [filter, setFilter] = useState<MarkerStatus | 'all'>('all');
+  const { t, language } = useLanguage();
+  const { issues, loading } = useIssues();
+  const [selectedIssue, setSelectedIssue] = useState<any | null>(null);
+  const [filter, setFilter] = useState<string>('all');
 
   const viewState = selectedVillage
     ? {
@@ -100,16 +46,23 @@ const VillageMap: React.FC = () => {
         zoom: 7,
       };
 
-  const filteredMarkers = filter === 'all' 
-    ? mockMarkers 
-    : mockMarkers.filter(m => m.status === filter);
+  // Filter issues that have coordinates
+  const issuesWithLocation = issues.filter(i => i.latitude && i.longitude);
+  
+  const filteredIssues = filter === 'all' 
+    ? issuesWithLocation 
+    : issuesWithLocation.filter(i => {
+        if (filter === 'problem') return i.status === 'pending';
+        if (filter === 'solved') return i.status === 'resolved';
+        if (filter === 'progress') return i.status === 'in-progress';
+        return true;
+      });
 
-  const filters: { id: MarkerStatus | 'all'; label: string; color?: string }[] = [
-    { id: 'all', label: 'Баары' },
-    { id: 'problem', label: t('problem'), color: statusColors.problem },
-    { id: 'solved', label: t('solved'), color: statusColors.solved },
-    { id: 'progress', label: t('inProgress'), color: statusColors.progress },
-    { id: 'event', label: t('event'), color: statusColors.event },
+  const filters: { id: string; label: string; color?: string }[] = [
+    { id: 'all', label: language === 'kg' ? 'Баары' : 'Все' },
+    { id: 'problem', label: language === 'kg' ? 'Көйгөй' : 'Проблема', color: statusColors.pending },
+    { id: 'solved', label: language === 'kg' ? 'Чечилди' : 'Решено', color: statusColors.resolved },
+    { id: 'progress', label: language === 'kg' ? 'Иш жүрүүдө' : 'В работе', color: statusColors['in-progress'] },
   ];
 
   return (
@@ -141,6 +94,21 @@ const VillageMap: React.FC = () => {
         ))}
       </motion.div>
 
+      {/* Loading indicator */}
+      {loading && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-10 bg-background/90 backdrop-blur-lg rounded-full px-4 py-2 text-sm">
+          {language === 'kg' ? 'Жүктөлүүдө...' : 'Загрузка...'}
+        </div>
+      )}
+
+      {/* No issues message */}
+      {!loading && filteredIssues.length === 0 && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-10 bg-background/90 backdrop-blur-lg rounded-xl px-4 py-3 text-sm text-center">
+          <MapPin className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
+          {language === 'kg' ? 'Маселе табылган жок' : 'Проблемы не найдены'}
+        </div>
+      )}
+
       <Map
         initialViewState={viewState}
         style={{ width: '100%', height: '100%' }}
@@ -148,15 +116,15 @@ const VillageMap: React.FC = () => {
       >
         <NavigationControl position="bottom-right" />
         
-        {filteredMarkers.map((marker) => (
+        {filteredIssues.map((issue) => (
           <Marker
-            key={marker.id}
-            longitude={marker.lng}
-            latitude={marker.lat}
+            key={issue.id}
+            longitude={issue.longitude!}
+            latitude={issue.latitude!}
             anchor="center"
             onClick={(e) => {
               e.originalEvent.stopPropagation();
-              setSelectedMarker(marker);
+              setSelectedIssue(issue);
             }}
           >
             <motion.div
@@ -167,22 +135,22 @@ const VillageMap: React.FC = () => {
             >
               <div
                 className="w-6 h-6 rounded-full border-2 border-white shadow-lg"
-                style={{ backgroundColor: statusColors[marker.status] }}
+                style={{ backgroundColor: statusColors[issue.status] || statusColors.pending }}
               />
               <div
                 className="absolute w-6 h-6 rounded-full animate-ping opacity-50"
-                style={{ backgroundColor: statusColors[marker.status] }}
+                style={{ backgroundColor: statusColors[issue.status] || statusColors.pending }}
               />
             </motion.div>
           </Marker>
         ))}
 
-        {selectedMarker && (
+        {selectedIssue && selectedIssue.latitude && selectedIssue.longitude && (
           <Popup
-            longitude={selectedMarker.lng}
-            latitude={selectedMarker.lat}
+            longitude={selectedIssue.longitude}
+            latitude={selectedIssue.latitude}
             anchor="bottom"
-            onClose={() => setSelectedMarker(null)}
+            onClose={() => setSelectedIssue(null)}
             closeButton={false}
             className="!p-0"
           >
@@ -191,40 +159,56 @@ const VillageMap: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               className="w-72 bg-card rounded-xl overflow-hidden shadow-xl"
             >
+              {/* Image if available */}
+              {selectedIssue.image_url && (
+                <img 
+                  src={selectedIssue.image_url} 
+                  alt="" 
+                  className="w-full h-32 object-cover"
+                />
+              )}
+              
               {/* Header */}
               <div className="p-4 border-b">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
                     <span
                       className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: statusColors[selectedMarker.status] }}
+                      style={{ backgroundColor: statusColors[selectedIssue.status] || statusColors.pending }}
                     />
                     <span className="text-xs font-medium text-muted-foreground uppercase">
-                      {t(selectedMarker.status)}
+                      {selectedIssue.status === 'pending' && (language === 'kg' ? 'Күтүүдө' : 'Ожидает')}
+                      {selectedIssue.status === 'in-progress' && (language === 'kg' ? 'Иш жүрүүдө' : 'В работе')}
+                      {selectedIssue.status === 'resolved' && (language === 'kg' ? 'Чечилди' : 'Решено')}
                     </span>
                   </div>
                   <button
-                    onClick={() => setSelectedMarker(null)}
+                    onClick={() => setSelectedIssue(null)}
                     className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center hover:bg-muted transition-colors"
                   >
                     <X className="w-3 h-3" />
                   </button>
                 </div>
-                <h3 className="font-semibold text-lg mt-2">{selectedMarker.title}</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {selectedMarker.description}
+                <h3 className="font-semibold text-lg mt-2">{selectedIssue.title}</h3>
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                  {selectedIssue.description}
                 </p>
+                {selectedIssue.author && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {selectedIssue.author.full_name || (language === 'kg' ? 'Белгисиз' : 'Неизвестно')}
+                  </p>
+                )}
               </div>
 
               {/* Actions */}
               <div className="p-3 flex items-center justify-around">
                 <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <ThumbsUp className="w-4 h-4" />
-                  <span>{selectedMarker.votes}</span>
+                  <span>{selectedIssue.votes_count || 0}</span>
                 </button>
                 <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <MessageCircle className="w-4 h-4" />
-                  <span>{selectedMarker.comments}</span>
+                  <span>0</span>
                 </button>
                 <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <Share2 className="w-4 h-4" />
