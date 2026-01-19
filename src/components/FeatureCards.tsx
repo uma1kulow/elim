@@ -6,8 +6,7 @@ import {
   Briefcase, 
   Vote, 
   AlertTriangle, 
-  Heart,
-  Zap
+  Heart
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -18,7 +17,6 @@ interface FeatureCardsProps {
   onOpenVoting: () => void;
   onOpenIssues: () => void;
   onOpenDonations: () => void;
-  onOpenZapier?: () => void;
 }
 
 const FeatureCards: React.FC<FeatureCardsProps> = ({
@@ -27,8 +25,7 @@ const FeatureCards: React.FC<FeatureCardsProps> = ({
   onOpenEconomy,
   onOpenVoting,
   onOpenIssues,
-  onOpenDonations,
-  onOpenZapier
+  onOpenDonations
 }) => {
   const { language } = useLanguage();
 
@@ -80,15 +77,7 @@ const FeatureCards: React.FC<FeatureCardsProps> = ({
       color: 'text-rose-500',
       bgColor: 'bg-rose-500/10',
       onClick: onOpenDonations
-    },
-    ...(onOpenZapier ? [{
-      icon: Zap,
-      title: 'Zapier',
-      subtitle: language === 'kg' ? 'Автоматташтыруу' : 'Автоматизация',
-      color: 'text-orange-500',
-      bgColor: 'bg-orange-500/10',
-      onClick: onOpenZapier
-    }] : [])
+    }
   ];
 
   return (
