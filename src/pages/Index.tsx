@@ -22,6 +22,7 @@ import DonationsView from '@/components/DonationsView';
 import VillageHistoryView from '@/components/VillageHistoryView';
 import VillageFutureView from '@/components/VillageFutureView';
 import PostComments from '@/components/PostComments';
+import ZapierIntegration from '@/components/ZapierIntegration';
 import AdminPanel from '@/components/AdminPanel';
 import AdminAccessModal from '@/components/AdminAccessModal';
 import { useVillage } from '@/contexts/VillageContext';
@@ -34,7 +35,7 @@ import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { ru, enUS } from 'date-fns/locale';
 
-type FeatureView = 'gamification' | 'notifications' | 'economy' | 'voting' | 'issues' | 'donations' | 'history' | 'future' | 'admin' | null;
+type FeatureView = 'gamification' | 'notifications' | 'economy' | 'voting' | 'issues' | 'donations' | 'history' | 'future' | 'admin' | 'zapier' | null;
 
 const Index: React.FC = () => {
   const [showIntro, setShowIntro] = useState(true);
@@ -128,6 +129,11 @@ const Index: React.FC = () => {
               <AdminPanel onBack={handleCloseFeature} />
             </motion.div>
           )}
+          {activeFeature === 'zapier' && (
+            <motion.div key="zapier" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+              <ZapierIntegration onBack={handleCloseFeature} />
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     );
@@ -165,6 +171,7 @@ const Index: React.FC = () => {
                 onOpenVoting={() => setActiveFeature('voting')}
                 onOpenIssues={() => setActiveFeature('issues')}
                 onOpenDonations={() => setActiveFeature('donations')}
+                onOpenZapier={() => setActiveFeature('zapier')}
               />
 
               {/* Village History & Future Cards */}
