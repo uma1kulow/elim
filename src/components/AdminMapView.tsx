@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Map, { Marker, Popup, NavigationControl } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { ArrowLeft, MapPin, Check, Clock, Trash2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { ArrowLeft, MapPin, Check, Clock, Trash2, RefreshCw, Plus, X } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useVillage } from '@/contexts/VillageContext';
 import { useIssues, Issue } from '@/hooks/useIssues';
@@ -11,21 +11,72 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface AdminMapViewProps {
   onBack: () => void;
 }
 
+const categories = [
+  { id: 'road', kg: 'Жол', ru: 'Дороги' },
+  { id: 'water', kg: 'Суу', ru: 'Вода' },
+  { id: 'electricity', kg: 'Электр', ru: 'Электричество' },
+  { id: 'garbage', kg: 'Таштанды', ru: 'Мусор' },
+  { id: 'safety', kg: 'Коопсуздук', ru: 'Безопасность' },
+  { id: 'other', kg: 'Башка', ru: 'Другое' },
+];
+
 const AdminMapView: React.FC<AdminMapViewProps> = ({ onBack }) => {
   const { language } = useLanguage();
   const { selectedVillage } = useVillage();
-  const { issues, refetch: refetchIssues } = useIssues();
+  const { issues, refetch: refetchIssues, createIssue } = useIssues();
   const { updateIssueStatus, deleteIssue } = useAdmin();
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
   const [showList, setShowList] = useState(false);
+  const [isAddingMode, setIsAddingMode] = useState(false);
+  const [newMarkerCoords, setNewMarkerCoords] = useState<{ lng: number; lat: number } | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newIssue, setNewIssue] = useState({ title: '', description: '', category: 'other' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const mapRef = useRef<any>(null);
 
   const issuesWithLocation = issues.filter(i => i.latitude && i.longitude);
+
+  const handleMapClick = (e: any) => {
+    if (isAddingMode) {
+      setNewMarkerCoords({ lng: e.lngLat.lng, lat: e.lngLat.lat });
+      setShowCreateForm(true);
+    }
+  };
+
+  const handleCreateIssue = async () => {
+    if (!newMarkerCoords || !newIssue.title.trim() || !newIssue.description.trim()) return;
+    
+    setIsSubmitting(true);
+    await createIssue(
+      newIssue.title,
+      newIssue.description,
+      newIssue.category,
+      undefined,
+      newMarkerCoords.lat,
+      newMarkerCoords.lng
+    );
+    setIsSubmitting(false);
+    setShowCreateForm(false);
+    setNewMarkerCoords(null);
+    setIsAddingMode(false);
+    setNewIssue({ title: '', description: '', category: 'other' });
+    refetchIssues();
+  };
+
+  const cancelAdding = () => {
+    setIsAddingMode(false);
+    setNewMarkerCoords(null);
+    setShowCreateForm(false);
+    setNewIssue({ title: '', description: '', category: 'other' });
+  };
 
   const statusColors: Record<string, string> = {
     pending: '#EAB308',
@@ -84,6 +135,25 @@ const AdminMapView: React.FC<AdminMapViewProps> = ({ onBack }) => {
             <Button variant="ghost" size="icon" onClick={() => refetchIssues()}>
               <RefreshCw className="w-4 h-4" />
             </Button>
+            {isAddingMode ? (
+              <Button 
+                variant="destructive" 
+                size="sm"
+                onClick={cancelAdding}
+              >
+                <X className="w-4 h-4 mr-1" />
+                {language === 'kg' ? 'Жокко чыгаруу' : 'Отмена'}
+              </Button>
+            ) : (
+              <Button 
+                variant="default" 
+                size="sm"
+                onClick={() => setIsAddingMode(true)}
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                {language === 'kg' ? 'Кошуу' : 'Добавить'}
+              </Button>
+            )}
             <Button 
               variant={showList ? 'default' : 'outline'} 
               size="sm"
@@ -96,6 +166,13 @@ const AdminMapView: React.FC<AdminMapViewProps> = ({ onBack }) => {
       </div>
 
       <div className="flex-1 relative">
+        {/* Adding Mode Banner */}
+        {isAddingMode && !showCreateForm && (
+          <div className="absolute top-0 left-0 right-0 z-10 bg-primary text-primary-foreground py-2 px-4 text-center text-sm font-medium">
+            {language === 'kg' ? 'Картадан жер тандаңыз' : 'Нажмите на карту для выбора места'}
+          </div>
+        )}
+
         {/* Map */}
         <Map
           ref={mapRef}
@@ -104,11 +181,25 @@ const AdminMapView: React.FC<AdminMapViewProps> = ({ onBack }) => {
             latitude: selectedVillage?.coordinates.lat || 42.8,
             zoom: 13
           }}
-          style={{ width: '100%', height: '100%' }}
+          style={{ width: '100%', height: '100%', cursor: isAddingMode ? 'crosshair' : 'grab' }}
           mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
           mapLib={maplibregl}
+          onClick={handleMapClick}
         >
           <NavigationControl position="top-right" />
+
+          {/* New Marker Preview */}
+          {newMarkerCoords && (
+            <Marker
+              longitude={newMarkerCoords.lng}
+              latitude={newMarkerCoords.lat}
+              anchor="bottom"
+            >
+              <div className="animate-bounce">
+                <MapPin className="w-10 h-10 text-primary" fill="currentColor" />
+              </div>
+            </Marker>
+          )}
           
           {issuesWithLocation.map(issue => (
             <Marker
@@ -224,6 +315,101 @@ const AdminMapView: React.FC<AdminMapViewProps> = ({ onBack }) => {
             </div>
           </div>
         </div>
+
+        {/* Create Issue Form Modal */}
+        <AnimatePresence>
+          {showCreateForm && newMarkerCoords && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+              onClick={(e) => e.target === e.currentTarget && cancelAdding()}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-background rounded-2xl p-6 w-full max-w-md shadow-xl"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-lg">
+                    {language === 'kg' ? 'Жаңы маселе кошуу' : 'Добавить проблему'}
+                  </h3>
+                  <button onClick={cancelAdding} className="p-2 hover:bg-secondary rounded-full">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">
+                      {language === 'kg' ? 'Категория' : 'Категория'}
+                    </label>
+                    <Select
+                      value={newIssue.category}
+                      onValueChange={(value) => setNewIssue(prev => ({ ...prev, category: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map(cat => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {language === 'kg' ? cat.kg : cat.ru}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">
+                      {language === 'kg' ? 'Аталышы' : 'Название'}
+                    </label>
+                    <Input
+                      value={newIssue.title}
+                      onChange={(e) => setNewIssue(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder={language === 'kg' ? 'Маселенин аталышы...' : 'Название проблемы...'}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">
+                      {language === 'kg' ? 'Сүрөттөмө' : 'Описание'}
+                    </label>
+                    <Textarea
+                      value={newIssue.description}
+                      onChange={(e) => setNewIssue(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder={language === 'kg' ? 'Толук маалымат...' : 'Подробное описание...'}
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="text-xs text-muted-foreground bg-secondary/50 rounded-lg p-2">
+                    📍 {newMarkerCoords.lat.toFixed(6)}, {newMarkerCoords.lng.toFixed(6)}
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <Button variant="outline" className="flex-1" onClick={cancelAdding}>
+                      {language === 'kg' ? 'Жокко чыгаруу' : 'Отмена'}
+                    </Button>
+                    <Button 
+                      className="flex-1" 
+                      onClick={handleCreateIssue}
+                      disabled={isSubmitting || !newIssue.title.trim() || !newIssue.description.trim()}
+                    >
+                      {isSubmitting 
+                        ? (language === 'kg' ? 'Сакталууда...' : 'Сохранение...') 
+                        : (language === 'kg' ? 'Кошуу' : 'Добавить')
+                      }
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Issues List Sidebar */}
         <AnimatePresence>
