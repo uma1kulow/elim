@@ -6,7 +6,8 @@ import { useVillage } from '@/contexts/VillageContext';
 import { useFollow } from '@/hooks/useFollow';
 import { useMessages } from '@/hooks/useMessages';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, Settings, MessageCircle, LogOut, Grid3X3, Bookmark } from 'lucide-react';
+import { ArrowLeft, Settings, MessageCircle, LogOut, Grid3X3, Bookmark, Trash2, X } from 'lucide-react';
+import { usePosts } from '@/hooks/usePosts';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import EditProfileModal from './EditProfileModal';
@@ -44,6 +45,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ profileId, onBack, onOpenChat
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [activePostTab, setActivePostTab] = useState<'posts' | 'saved' | 'tagged'>('posts');
   const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
+  
+  const { deletePost } = usePosts();
   
   const isOwnProfile = !profileId || profileId === currentProfile?.id;
   const targetProfileId = isOwnProfile ? currentProfile?.id : profileId;
@@ -120,6 +125,20 @@ const UserProfile: React.FC<UserProfileProps> = ({ profileId, onBack, onOpenChat
   const handleEditClose = () => {
     setShowEditModal(false);
     refreshProfile();
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    setDeletingPostId(postId);
+    const { error } = await deletePost(postId);
+    if (!error) {
+      setUserPosts(prev => prev.filter(p => p.id !== postId));
+      setPostsCount(prev => prev - 1);
+      setSelectedPost(null);
+      toast.success(language === 'kg' ? 'Пост өчүрүлдү' : 'Пост удален');
+    } else {
+      toast.error(language === 'kg' ? 'Ката кетти' : 'Ошибка');
+    }
+    setDeletingPostId(null);
   };
 
   const profile = isOwnProfile ? currentProfile : viewedProfile;
@@ -350,7 +369,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ profileId, onBack, onOpenChat
                   key={post.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="aspect-square bg-secondary/50"
+                  onClick={() => setSelectedPost(post)}
+                  className="aspect-square bg-secondary/50 relative cursor-pointer group"
                 >
                   {post.image_url ? (
                     <img 
@@ -363,6 +383,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ profileId, onBack, onOpenChat
                       <p className="text-xs text-muted-foreground text-center line-clamp-3">
                         {post.content.slice(0, 50)}...
                       </p>
+                    </div>
+                  )}
+                  {isOwnProfile && (
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Trash2 className="w-6 h-6 text-white" />
                     </div>
                   )}
                 </motion.div>
@@ -401,6 +426,66 @@ const UserProfile: React.FC<UserProfileProps> = ({ profileId, onBack, onOpenChat
         isOpen={showEditModal} 
         onClose={handleEditClose}
       />
+
+      {/* Post Detail Modal */}
+      {selectedPost && isOwnProfile && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedPost(null)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-background rounded-2xl max-w-md w-full max-h-[80vh] overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h3 className="font-semibold">{language === 'kg' ? 'Пост' : 'Публикация'}</h3>
+              <button 
+                onClick={() => setSelectedPost(null)}
+                className="p-1 hover:bg-secondary rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Post Content */}
+            <div className="p-4">
+              {selectedPost.image_url && (
+                <img 
+                  src={selectedPost.image_url} 
+                  alt="" 
+                  className="w-full rounded-xl mb-4 max-h-64 object-cover"
+                />
+              )}
+              <p className="text-sm">{selectedPost.content}</p>
+            </div>
+
+            {/* Delete Button */}
+            <div className="p-4 border-t border-border">
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleDeletePost(selectedPost.id)}
+                disabled={deletingPostId === selectedPost.id}
+                className="w-full py-3 bg-destructive text-destructive-foreground rounded-xl font-medium flex items-center justify-center gap-2"
+              >
+                {deletingPostId === selectedPost.id ? (
+                  <div className="w-5 h-5 border-2 border-destructive-foreground/20 border-t-destructive-foreground rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Trash2 className="w-5 h-5" />
+                    {language === 'kg' ? 'Постту өчүрүү' : 'Удалить пост'}
+                  </>
+                )}
+              </motion.button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </>
   );
 };
