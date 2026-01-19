@@ -28,7 +28,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePosts } from '@/hooks/usePosts';
 import { useAdmin } from '@/hooks/useAdmin';
-import { ChevronRight, Heart, MessageCircle, History, Rocket, Shield } from 'lucide-react';
+import { ChevronRight, Heart, MessageCircle, History, Rocket } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { ru, enUS } from 'date-fns/locale';
@@ -133,7 +133,7 @@ const Index: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Header onSecretAdminAccess={() => isAdmin && setActiveFeature('admin')} />
 
       <main className="pt-14 pb-32 px-5">
         <AnimatePresence mode="wait">
@@ -154,34 +154,6 @@ const Index: React.FC = () => {
 
               <VillageStats />
               <WeeklyMission onClick={() => setActiveFeature('gamification')} />
-
-              {/* Admin Panel Card */}
-              {isAdmin && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.08 }}
-                >
-                  <button
-                    onClick={() => setActiveFeature('admin')}
-                    className="w-full bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                        <Shield className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold">
-                          {language === 'kg' ? 'Админ панель' : 'Панель администратора'}
-                        </h3>
-                        <p className="text-xs text-muted-foreground">
-                          {language === 'kg' ? 'Айылды башкаруу' : 'Управление селом'}
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-                </motion.div>
-              )}
 
               {/* Feature Cards */}
               <FeatureCards
