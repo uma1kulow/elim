@@ -23,6 +23,7 @@ import VillageHistoryView from '@/components/VillageHistoryView';
 import VillageFutureView from '@/components/VillageFutureView';
 import PostComments from '@/components/PostComments';
 import AdminPanel from '@/components/AdminPanel';
+import AdminAccessModal from '@/components/AdminAccessModal';
 import { useVillage } from '@/contexts/VillageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -44,6 +45,7 @@ const Index: React.FC = () => {
   const [showAIBot, setShowAIBot] = useState(false);
   const [activeFeature, setActiveFeature] = useState<FeatureView>(null);
   const [selectedPostForComments, setSelectedPostForComments] = useState<string | null>(null);
+  const [showAdminAccessModal, setShowAdminAccessModal] = useState(false);
   const { hasSelectedVillage, selectedVillage } = useVillage();
   const { t, language } = useLanguage();
   const { profile } = useAuth();
@@ -133,7 +135,7 @@ const Index: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onSecretAdminAccess={() => isAdmin && setActiveFeature('admin')} />
+      <Header onSecretAdminAccess={() => setShowAdminAccessModal(true)} />
 
       <main className="pt-14 pb-32 px-5">
         <AnimatePresence mode="wait">
@@ -309,6 +311,14 @@ const Index: React.FC = () => {
       </main>
 
       <CreatePostModal isOpen={showCreatePost} onClose={() => setShowCreatePost(false)} />
+      <AdminAccessModal 
+        isOpen={showAdminAccessModal} 
+        onClose={() => setShowAdminAccessModal(false)}
+        onSuccess={() => {
+          setShowAdminAccessModal(false);
+          setActiveFeature('admin');
+        }}
+      />
       <BottomNav 
         activeTab={activeTab} 
         onTabChange={(tab) => {
