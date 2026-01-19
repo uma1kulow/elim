@@ -22,16 +22,18 @@ import DonationsView from '@/components/DonationsView';
 import VillageHistoryView from '@/components/VillageHistoryView';
 import VillageFutureView from '@/components/VillageFutureView';
 import PostComments from '@/components/PostComments';
+import AdminPanel from '@/components/AdminPanel';
 import { useVillage } from '@/contexts/VillageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePosts } from '@/hooks/usePosts';
-import { ChevronRight, Heart, MessageCircle, History, Rocket } from 'lucide-react';
+import { useAdmin } from '@/hooks/useAdmin';
+import { ChevronRight, Heart, MessageCircle, History, Rocket, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { ru, enUS } from 'date-fns/locale';
 
-type FeatureView = 'gamification' | 'notifications' | 'economy' | 'voting' | 'issues' | 'donations' | 'history' | 'future' | null;
+type FeatureView = 'gamification' | 'notifications' | 'economy' | 'voting' | 'issues' | 'donations' | 'history' | 'future' | 'admin' | null;
 
 const Index: React.FC = () => {
   const [showIntro, setShowIntro] = useState(true);
@@ -46,6 +48,7 @@ const Index: React.FC = () => {
   const { t, language } = useLanguage();
   const { profile } = useAuth();
   const { posts, likePost, refetch: refetchPosts } = usePosts();
+  const { isAdmin } = useAdmin();
 
   if (showIntro || !hasSelectedVillage) {
     return <IntroScreen onComplete={() => setShowIntro(false)} />;
@@ -118,6 +121,11 @@ const Index: React.FC = () => {
               <VillageFutureView onBack={handleCloseFeature} />
             </motion.div>
           )}
+          {activeFeature === 'admin' && (
+            <motion.div key="admin" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+              <AdminPanel onBack={handleCloseFeature} />
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     );
@@ -146,6 +154,34 @@ const Index: React.FC = () => {
 
               <VillageStats />
               <WeeklyMission onClick={() => setActiveFeature('gamification')} />
+
+              {/* Admin Panel Card */}
+              {isAdmin && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.08 }}
+                >
+                  <button
+                    onClick={() => setActiveFeature('admin')}
+                    className="w-full bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                        <Shield className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">
+                          {language === 'kg' ? 'Админ панель' : 'Панель администратора'}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {language === 'kg' ? 'Айылды башкаруу' : 'Управление селом'}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                </motion.div>
+              )}
 
               {/* Feature Cards */}
               <FeatureCards
